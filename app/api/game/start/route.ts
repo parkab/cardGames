@@ -28,7 +28,7 @@ function dealSolvableHand(
 
 export async function POST(req: NextRequest) {
   try {
-    const { roomCode, playerId } = await req.json();
+    const { roomCode, playerId, settings: settingsOverride } = await req.json();
     const raw = await getRoomState(roomCode);
     if (!raw) return NextResponse.json({ error: 'Room not found.' }, { status: 404 });
 
@@ -37,8 +37,17 @@ export async function POST(req: NextRequest) {
     if (roomState.hostId !== playerId) {
       return NextResponse.json({ error: 'Only the host can start the game.' }, { status: 403 });
     }
-    if (roomState.players.length < 2) {
-      return NextResponse.json({ error: 'Need at least 2 players to start.' }, { status: 400 });
+
+    // Apply settings override if provided (Play Again flow)
+    if (settingsOverride) {
+      roomState.settings = {
+        timeLimitSeconds: Math.min(300, Math.max(30, settingsOverride.timeLimitSeconds ?? DEFAULT_SETTINGS.timeLimitSeconds)),
+        modAllowed: !!settingsOverride.modAllowed,
+        fractionsAllowed: !!settingsOverride.fractionsAllowed,
+        cardsPerRound: Math.min(7, Math.max(3, settingsOverride.cardsPerRound ?? DEFAULT_SETTINGS.cardsPerRound)),
+        targetNumber: Math.min(100, Math.max(-100, settingsOverride.targetNumber ?? DEFAULT_SETTINGS.targetNumber)),
+        infiniteMode: !!settingsOverride.infiniteMode,
+      };
     }
 
     const settings = roomState.settings ?? DEFAULT_SETTINGS;

@@ -75,7 +75,10 @@ export function useGameState({ roomCode, playerId, initialRoom, initialGame }: U
     setSolutions(sols);
     setShowSolutions(true);
     if (solutionTimerRef.current) clearTimeout(solutionTimerRef.current);
-    solutionTimerRef.current = setTimeout(() => setShowSolutions(false), 10000);
+    solutionTimerRef.current = setTimeout(() => {
+      setShowSolutions(false);
+      setNotification(null);
+    }, 10000);
   }
 
   useEffect(() => {

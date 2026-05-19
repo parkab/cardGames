@@ -22,10 +22,10 @@ export default function StartButton({ isHost, playerCount, onStart, loading }: S
     <Button
       size="lg"
       onClick={onStart}
-      disabled={playerCount < 2 || loading}
+      disabled={loading}
       className="w-full"
     >
-      {loading ? 'Starting…' : playerCount < 2 ? 'Need at least 2 players' : 'Start Game'}
+      {loading ? 'Starting…' : 'Start Game'}
     </Button>
   );
 }

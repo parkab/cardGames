@@ -241,14 +241,14 @@ export default function Play21Page() {
                   <span className="text-gold font-mono">{settings.targetNumber ?? 21}</span>
                 </div>
                 <input
-                  type="range" min={-50} max={50} step={1}
+                  type="range" min={-100} max={100} step={1}
                   value={settings.targetNumber ?? 21}
                   onChange={(e) => setSettings((s) => ({ ...s, targetNumber: +e.target.value }))}
                   className="w-full h-1.5 rounded appearance-none cursor-pointer bg-white/10"
                   style={{ accentColor: '#c9a84c' }}
                 />
                 <div className="flex justify-between text-white/20 text-[10px] mt-1">
-                  <span>-50</span><span>0</span><span>50</span>
+                  <span>-100</span><span>0</span><span>100</span>
                 </div>
               </div>
 

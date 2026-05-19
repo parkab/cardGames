@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     if (roomState.status !== 'lobby') {
       return NextResponse.json({ error: 'Game already in progress.' }, { status: 409 });
     }
-    if (roomState.players.length >= 8) {
+    if (roomState.players.length >= 10) {
       return NextResponse.json({ error: 'Room is full.' }, { status: 409 });
     }
 

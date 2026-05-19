@@ -115,7 +115,7 @@ export default function LobbyPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-gold/80 text-sm tracking-widest uppercase font-display">Players</h2>
-              <span className="text-white/40 text-sm">{room?.players.length ?? 0} / 8</span>
+              <span className="text-white/40 text-sm">{room?.players.length ?? 0} / 10</span>
             </div>
             {room ? (
               <PlayerList

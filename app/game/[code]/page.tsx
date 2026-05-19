@@ -14,7 +14,7 @@ import SolutionsPanel from '@/components/game/SolutionsPanel';
 import { useGameState } from '@/hooks/useGameState';
 import { useTimer } from '@/hooks/useTimer';
 import { DEFAULT_SETTINGS } from '@/types';
-import type { RoomState, GameState } from '@/types';
+import type { RoomState, GameState, RoomSettings } from '@/types';
 
 export default function GamePage() {
   const { code } = useParams<{ code: string }>();
@@ -103,11 +103,11 @@ export default function GamePage() {
     });
   }, [code, playerId]);
 
-  const handlePlayAgain = useCallback(async () => {
+  const handlePlayAgain = useCallback(async (newSettings: RoomSettings) => {
     await fetch('/api/game/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roomCode: code, playerId }),
+      body: JSON.stringify({ roomCode: code, playerId, settings: newSettings }),
     });
   }, [code, playerId]);
 
@@ -133,6 +133,7 @@ export default function GamePage() {
             isHost={room.hostId === playerId}
             onPlayAgain={handlePlayAgain}
             onGoHome={() => router.push('/')}
+            currentSettings={room.settings}
           />
         </div>
       </>
