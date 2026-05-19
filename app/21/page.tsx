@@ -26,7 +26,7 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
       className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${on ? 'bg-gold' : 'bg-white/20'}`}
     >
       <span
-        className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${on ? 'translate-x-6' : 'translate-x-1'}`}
+        className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${on ? 'left-6' : 'left-1'}`}
       />
     </button>
   );
@@ -234,6 +234,24 @@ export default function Play21Page() {
                 </div>
               </div>
 
+              {/* Target number */}
+              <div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-white/50">Target Number</span>
+                  <span className="text-gold font-mono">{settings.targetNumber ?? 21}</span>
+                </div>
+                <input
+                  type="range" min={-50} max={50} step={1}
+                  value={settings.targetNumber ?? 21}
+                  onChange={(e) => setSettings((s) => ({ ...s, targetNumber: +e.target.value }))}
+                  className="w-full h-1.5 rounded appearance-none cursor-pointer bg-white/10"
+                  style={{ accentColor: '#c9a84c' }}
+                />
+                <div className="flex justify-between text-white/20 text-[10px] mt-1">
+                  <span>-50</span><span>0</span><span>50</span>
+                </div>
+              </div>
+
               {/* Modulus toggle */}
               <div className="flex items-center justify-between">
                 <div>
@@ -250,6 +268,15 @@ export default function Play21Page() {
                   <p className="text-white/25 text-xs">Intermediate non-integer results</p>
                 </div>
                 <Toggle on={settings.fractionsAllowed} onToggle={() => setSettings((s) => ({ ...s, fractionsAllowed: !s.fractionsAllowed }))} />
+              </div>
+
+              {/* Infinite mode toggle */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/60 text-sm">Infinite mode</p>
+                  <p className="text-white/25 text-xs">Cards drawn with replacement — game ends via vote only</p>
+                </div>
+                <Toggle on={settings.infiniteMode ?? false} onToggle={() => setSettings((s) => ({ ...s, infiniteMode: !s.infiniteMode }))} />
               </div>
             </div>
 

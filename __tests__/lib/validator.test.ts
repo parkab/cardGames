@@ -74,3 +74,45 @@ describe('validateSolution', () => {
     expect(validateSolution('3+7+1+1', cards3711)).toBe(false);
   });
 });
+
+describe('validateSolution with custom targetNumber', () => {
+  it('accepts expression that hits a custom target (12)', () => {
+    // 3*4+1-1 LTR: 3*4=12, 12+1=13, 13-1=12
+    const cards = [{ suit: 'spades' as const, rank: '2' as const, value: 3 },
+                   { suit: 'spades' as const, rank: '2' as const, value: 4 },
+                   { suit: 'spades' as const, rank: '2' as const, value: 1 },
+                   { suit: 'spades' as const, rank: '2' as const, value: 1 }];
+    expect(validateSolution('3 * 4 + 1 - 1', cards, { targetNumber: 12 })).toBe(true);
+  });
+
+  it('rejects expression that hits default 21 when target is 12', () => {
+    // 3*7+1-1=21, but target=12
+    expect(validateSolution('3 * 7 + 1 - 1', cards3711, { targetNumber: 12 })).toBe(false);
+  });
+
+  it('accepts expression that hits a negative target (-5)', () => {
+    // 1-2-4*1 LTR: 1-2=-1, -1-4=-5, -5*1=-5
+    const cards = [{ suit: 'spades' as const, rank: '2' as const, value: 1 },
+                   { suit: 'spades' as const, rank: '2' as const, value: 2 },
+                   { suit: 'spades' as const, rank: '2' as const, value: 4 },
+                   { suit: 'spades' as const, rank: '2' as const, value: 1 }];
+    expect(validateSolution('1 - 2 - 4 * 1', cards, { targetNumber: -5 })).toBe(true);
+  });
+
+  it('rejects expression that hits -5 when target is 21', () => {
+    const cards = [{ suit: 'spades' as const, rank: '2' as const, value: 1 },
+                   { suit: 'spades' as const, rank: '2' as const, value: 2 },
+                   { suit: 'spades' as const, rank: '2' as const, value: 4 },
+                   { suit: 'spades' as const, rank: '2' as const, value: 1 }];
+    expect(validateSolution('1 - 2 - 4 * 1', cards, { targetNumber: 21 })).toBe(false);
+  });
+
+  it('accepts expression for target 0', () => {
+    // 3-3+1-1 LTR: 0+1=1, 1-1=0
+    const cards = [{ suit: 'spades' as const, rank: '2' as const, value: 3 },
+                   { suit: 'spades' as const, rank: '2' as const, value: 3 },
+                   { suit: 'spades' as const, rank: '2' as const, value: 1 },
+                   { suit: 'spades' as const, rank: '2' as const, value: 1 }];
+    expect(validateSolution('3 - 3 + 1 - 1', cards, { targetNumber: 0 })).toBe(true);
+  });
+});

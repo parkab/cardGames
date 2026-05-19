@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRoomState, getGameState, setGameState } from '@/lib/redis';
 import { publishToRoom } from '@/lib/ably';
 import { canSolve } from '@/lib/solver';
-import { shuffleDeck } from '@/lib/deck';
+import { createDeck, shuffleDeck } from '@/lib/deck';
 import { DEFAULT_SETTINGS } from '@/types';
 import type { RoomState, GameState, RoomSettings } from '@/types';
 
-type SolverSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed'>>;
+type SolverSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed' | 'targetNumber'>>;
 
 export async function POST(req: NextRequest) {
   try {
@@ -46,12 +46,16 @@ export async function POST(req: NextRequest) {
       const solverSettings: SolverSettings = {
         modAllowed: settings.modAllowed,
         fractionsAllowed: settings.fractionsAllowed,
+        targetNumber: settings.targetNumber ?? 21,
       };
 
       gameState.roundStatus = 'skipped';
-      gameState.deck = shuffleDeck([...gameState.deck, ...gameState.currentHand]);
+      if (!settings.infiniteMode) {
+        gameState.deck = shuffleDeck([...gameState.deck, ...gameState.currentHand]);
+      }
 
-      const d = [...gameState.deck];
+      const deckSource = settings.infiniteMode ? shuffleDeck(createDeck()) : [...gameState.deck];
+      const d = [...deckSource];
       let nextHand = null;
       for (let i = 0; i < 50; i++) {
         if (d.length < settings.cardsPerRound) break;
@@ -64,7 +68,7 @@ export async function POST(req: NextRequest) {
 
       if (nextHand) {
         const now = Date.now() + 10000;
-        gameState.deck = nextHand.remaining;
+        gameState.deck = settings.infiniteMode ? [] : nextHand.remaining;
         gameState.currentHand = nextHand.hand;
         gameState.roundNumber += 1;
         gameState.roundStartedAt = now;
@@ -77,7 +81,7 @@ export async function POST(req: NextRequest) {
           roundNumber: gameState.roundNumber,
           cards: gameState.currentHand,
           roundStartedAt: now,
-          deckRemaining: gameState.deck.length,
+          deckRemaining: settings.infiniteMode ? -1 : gameState.deck.length,
         });
       }
     } else {

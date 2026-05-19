@@ -3,11 +3,11 @@ import { getRoomState, getGameState, setGameState, setRoomState } from '@/lib/re
 import { publishToRoom } from '@/lib/ably';
 import { validateSolution } from '@/lib/validator';
 import { canSolve } from '@/lib/solver';
-import { shuffleDeck } from '@/lib/deck';
+import { createDeck, shuffleDeck } from '@/lib/deck';
 import { DEFAULT_SETTINGS } from '@/types';
 import type { RoomState, GameState, Card, RoomSettings } from '@/types';
 
-type SolverSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed'>>;
+type SolverSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed' | 'targetNumber'>>;
 
 function dealNextSolvable(
   deck: Card[],
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     const solverSettings: SolverSettings = {
       modAllowed: settings.modAllowed,
       fractionsAllowed: settings.fractionsAllowed,
+      targetNumber: settings.targetNumber ?? 21,
     };
 
     if (gameState.roundStatus !== 'active') {
@@ -63,11 +64,13 @@ export async function POST(req: NextRequest) {
       await publishToRoom(roomCode, 'round:solved', {
         winnerId: playerId,
         winnerNickname: player?.nickname ?? 'Unknown',
+        expression,
         scores: gameState.scores,
       });
 
-      const dealt = dealNextSolvable(gameState.deck, settings.cardsPerRound, solverSettings);
-      if (!dealt) {
+      const deckSource = settings.infiniteMode ? shuffleDeck(createDeck()) : gameState.deck;
+      const dealt = dealNextSolvable(deckSource, settings.cardsPerRound, solverSettings);
+      if (!dealt && !settings.infiniteMode) {
         roomState.status = 'finished';
         await setRoomState(roomCode, roomState);
         await setGameState(roomCode, gameState);
@@ -75,9 +78,9 @@ export async function POST(req: NextRequest) {
           finalScores: gameState.scores,
           players: roomState.players,
         });
-      } else {
-        const now = Date.now() + 3000;
-        gameState.deck = dealt.remaining;
+      } else if (dealt) {
+        const now = Date.now() + 10000;
+        gameState.deck = settings.infiniteMode ? [] : dealt.remaining;
         gameState.currentHand = dealt.hand;
         gameState.roundNumber += 1;
         gameState.roundStartedAt = now;
@@ -90,7 +93,7 @@ export async function POST(req: NextRequest) {
           roundNumber: gameState.roundNumber,
           cards: gameState.currentHand,
           roundStartedAt: now,
-          deckRemaining: gameState.deck.length,
+          deckRemaining: settings.infiniteMode ? -1 : gameState.deck.length,
         });
       }
 
@@ -111,10 +114,13 @@ export async function POST(req: NextRequest) {
 
       if (activePlayers.length === 0) {
         gameState.roundStatus = 'timed_out';
-        gameState.deck = shuffleDeck([...gameState.deck, ...gameState.currentHand]);
+        if (!settings.infiniteMode) {
+          gameState.deck = shuffleDeck([...gameState.deck, ...gameState.currentHand]);
+        }
 
-        const dealt = dealNextSolvable(gameState.deck, settings.cardsPerRound, solverSettings);
-        if (!dealt) {
+        const deckSource2 = settings.infiniteMode ? shuffleDeck(createDeck()) : gameState.deck;
+        const dealt2 = dealNextSolvable(deckSource2, settings.cardsPerRound, solverSettings);
+        if (!dealt2 && !settings.infiniteMode) {
           roomState.status = 'finished';
           await setRoomState(roomCode, roomState);
           await setGameState(roomCode, gameState);
@@ -122,10 +128,10 @@ export async function POST(req: NextRequest) {
             finalScores: gameState.scores,
             players: roomState.players,
           });
-        } else {
+        } else if (dealt2) {
           const now = Date.now() + 10000;
-          gameState.deck = dealt.remaining;
-          gameState.currentHand = dealt.hand;
+          gameState.deck = settings.infiniteMode ? [] : dealt2.remaining;
+          gameState.currentHand = dealt2.hand;
           gameState.roundNumber += 1;
           gameState.roundStartedAt = now;
           gameState.roundStatus = 'active';
@@ -138,7 +144,7 @@ export async function POST(req: NextRequest) {
             roundNumber: gameState.roundNumber,
             cards: gameState.currentHand,
             roundStartedAt: now,
-            deckRemaining: gameState.deck.length,
+            deckRemaining: settings.infiniteMode ? -1 : gameState.deck.length,
           });
         }
       } else {

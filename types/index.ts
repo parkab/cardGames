@@ -22,6 +22,8 @@ export interface RoomSettings {
   modAllowed: boolean;        // default false
   fractionsAllowed: boolean;  // default false
   cardsPerRound: number;      // 3–7, default 4
+  targetNumber: number;       // -50–50, default 21
+  infiniteMode: boolean;      // cards drawn with replacement, game ends via end-vote only
 }
 
 export const DEFAULT_SETTINGS: RoomSettings = {
@@ -29,6 +31,8 @@ export const DEFAULT_SETTINGS: RoomSettings = {
   modAllowed: false,
   fractionsAllowed: false,
   cardsPerRound: 4,
+  targetNumber: 21,
+  infiniteMode: false,
 };
 
 export interface RoomState {
@@ -65,6 +69,7 @@ export interface RoundStartPayload {
 export interface RoundSolvedPayload {
   winnerId: string;
   winnerNickname: string;
+  expression: string;
   scores: Record<string, number>;
 }
 

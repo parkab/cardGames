@@ -25,7 +25,7 @@ interface UseGameStateOptions {
   initialGame: GameState;
 }
 
-type SolverSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed'>>;
+type SolverSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed' | 'targetNumber'>>;
 
 export function useGameState({ roomCode, playerId, initialRoom, initialGame }: UseGameStateOptions) {
   const [room, setRoom] = useState<RoomState>(initialRoom);
@@ -62,6 +62,7 @@ export function useGameState({ roomCode, playerId, initialRoom, initialGame }: U
   const [finalData, setFinalData] = useState<GameOverPayload | null>(null);
   const [solutions, setSolutions] = useState<string[]>([]);
   const [showSolutions, setShowSolutions] = useState(false);
+  const [winningExpression, setWinningExpression] = useState<string | null>(null);
   const [deckRemaining, setDeckRemaining] = useState(initialGame?.deck?.length ?? 0);
   const solutionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -102,6 +103,7 @@ export function useGameState({ roomCode, playerId, initialRoom, initialGame }: U
     subscribe('round:start', (data) => {
       const payload = data as RoundStartPayload;
       setDeckRemaining(payload.deckRemaining);
+      setWinningExpression(null);
       setGame((prev) => ({
         ...prev,
         currentHand: payload.cards,
@@ -118,6 +120,8 @@ export function useGameState({ roomCode, playerId, initialRoom, initialGame }: U
 
     subscribe('round:solved', (data) => {
       const payload = data as RoundSolvedPayload;
+      setWinningExpression(payload.expression);
+      revealSolutions();
       setGame((prev) => ({
         ...prev,
         roundStatus: 'solved',
@@ -179,5 +183,5 @@ export function useGameState({ roomCode, playerId, initialRoom, initialGame }: U
     };
   }, [roomCode, playerId]);
 
-  return { room, game, notification, isGameOver, finalData, connected, solutions, showSolutions, deckRemaining };
+  return { room, game, notification, isGameOver, finalData, connected, solutions, showSolutions, winningExpression, deckRemaining };
 }

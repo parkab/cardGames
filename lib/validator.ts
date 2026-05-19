@@ -1,6 +1,6 @@
 import type { Card, Op, RoomSettings } from '@/types';
 
-type ValidatorSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed'>>;
+type ValidatorSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed' | 'targetNumber'>>;
 
 const BASE_OPS: Op[] = ['+', '-', '*', '/'];
 
@@ -77,5 +77,6 @@ export function validateSolution(
   if (!numbersMatchCards(numbers, cards)) return false;
 
   const fractionsOk = settings?.fractionsAllowed ?? true;
-  return evalLTR(numbers, operators, fractionsOk) === 21;
+  const target = settings?.targetNumber ?? 21;
+  return evalLTR(numbers, operators, fractionsOk) === target;
 }

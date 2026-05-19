@@ -6,7 +6,7 @@ import { canSolve } from '@/lib/solver';
 import { DEFAULT_SETTINGS } from '@/types';
 import type { RoomState, GameState, Card, RoomSettings } from '@/types';
 
-type SolverSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed'>>;
+type SolverSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed' | 'targetNumber'>>;
 
 function dealSolvableHand(
   deck: Card[],
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
     const solverSettings: SolverSettings = {
       modAllowed: settings.modAllowed,
       fractionsAllowed: settings.fractionsAllowed,
+      targetNumber: settings.targetNumber ?? 21,
     };
 
     const shuffled = shuffleDeck(createDeck());
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     const now = Date.now();
     const gameState: GameState = {
-      deck: dealt.remaining,
+      deck: settings.infiniteMode ? [] : dealt.remaining,
       discardPile: [],
       currentHand: dealt.hand,
       roundNumber: 1,
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
       roundNumber: gameState.roundNumber,
       cards: gameState.currentHand,
       roundStartedAt: now,
-      deckRemaining: gameState.deck.length,
+      deckRemaining: settings.infiniteMode ? -1 : gameState.deck.length,
     });
 
     return NextResponse.json({ success: true });

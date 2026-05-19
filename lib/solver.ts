@@ -1,6 +1,6 @@
 import type { Card, Op, RoomSettings } from '@/types';
 
-type SolverSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed'>>;
+type SolverSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed' | 'targetNumber'>>;
 
 const BASE_OPS: Op[] = ['+', '-', '*', '/'];
 
@@ -74,22 +74,25 @@ function* iterate(cards: Card[], settings?: SolverSettings): Generator<{ perm: n
 
 export function canSolve(cards: Card[], settings?: SolverSettings): boolean {
   const fractionsOk = settings?.fractionsAllowed ?? true;
+  const target = settings?.targetNumber ?? 21;
   for (const { perm, ops } of iterate(cards, settings))
-    if (evalLTR(perm, ops, fractionsOk) === 21) return true;
+    if (evalLTR(perm, ops, fractionsOk) === target) return true;
   return false;
 }
 
 export function findSolution(cards: Card[], settings?: SolverSettings): string | null {
   const fractionsOk = settings?.fractionsAllowed ?? true;
+  const target = settings?.targetNumber ?? 21;
   for (const { perm, ops } of iterate(cards, settings))
-    if (evalLTR(perm, ops, fractionsOk) === 21) return buildExpr(perm, ops);
+    if (evalLTR(perm, ops, fractionsOk) === target) return buildExpr(perm, ops);
   return null;
 }
 
 export function findAllSolutions(cards: Card[], settings?: SolverSettings): string[] {
   const fractionsOk = settings?.fractionsAllowed ?? true;
+  const target = settings?.targetNumber ?? 21;
   const seen = new Set<string>();
   for (const { perm, ops } of iterate(cards, settings))
-    if (evalLTR(perm, ops, fractionsOk) === 21) seen.add(buildExpr(perm, ops));
+    if (evalLTR(perm, ops, fractionsOk) === target) seen.add(buildExpr(perm, ops));
   return [...seen].sort((a, b) => a.length - b.length);
 }

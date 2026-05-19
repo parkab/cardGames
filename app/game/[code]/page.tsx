@@ -46,7 +46,7 @@ export default function GamePage() {
 
   const ready = !!initialRoom && !!initialGame && !!playerId;
 
-  const { room, game, notification, isGameOver, finalData, solutions, showSolutions, deckRemaining } = useGameState(
+  const { room, game, notification, isGameOver, finalData, solutions, showSolutions, winningExpression, deckRemaining } = useGameState(
     ready
       ? { roomCode: code, playerId, initialRoom: initialRoom!, initialGame: initialGame! }
       : { roomCode: '', playerId: '', initialRoom: {} as RoomState, initialGame: {} as GameState }
@@ -164,11 +164,14 @@ export default function GamePage() {
             <span className="text-white/20">·</span>
             <span>Round {game.roundNumber}</span>
             <span className="text-white/20">·</span>
-            <span>🃏 {deckRemaining} left</span>
+            <span>🃏 {deckRemaining === -1 ? '∞' : deckRemaining} left</span>
             <span className="text-white/20">·</span>
             {/* Settings badges */}
             <span className="text-xs border border-white/10 rounded px-1.5 py-0.5 text-white/40">
               {settings.cardsPerRound} cards
+            </span>
+            <span className="text-xs border border-gold/30 text-gold/60 rounded px-1.5 py-0.5">
+              target: {settings.targetNumber ?? 21}
             </span>
             <span
               className={`text-xs border rounded px-1.5 py-0.5 ${settings.modAllowed
@@ -200,12 +203,14 @@ export default function GamePage() {
           </div>
         )}
 
-        {/* Solutions panel (shown 10s after timeout/skip) */}
+        {/* Solutions panel (shown 10s after round ends) */}
         {showSolutions && (
           <SolutionsPanel
             solutions={solutions}
             onHide={() => {/* useGameState timer handles this */}}
             durationSeconds={10}
+            targetNumber={settings.targetNumber ?? 21}
+            winningExpression={winningExpression}
           />
         )}
 

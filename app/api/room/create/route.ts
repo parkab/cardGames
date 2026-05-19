@@ -31,6 +31,8 @@ export async function POST(req: NextRequest) {
       modAllowed: !!rawSettings?.modAllowed,
       fractionsAllowed: !!rawSettings?.fractionsAllowed,
       cardsPerRound: clamp(rawSettings?.cardsPerRound ?? DEFAULT_SETTINGS.cardsPerRound, 3, 7),
+      targetNumber: clamp(rawSettings?.targetNumber ?? DEFAULT_SETTINGS.targetNumber, -50, 50),
+      infiniteMode: !!rawSettings?.infiniteMode,
     };
 
     const host: Player = {
