@@ -5,6 +5,7 @@ import { createDeck, shuffleDeck } from '@/lib/deck';
 import { canSolve } from '@/lib/solver';
 import { DEFAULT_SETTINGS } from '@/types';
 import type { RoomState, GameState, Card, RoomSettings } from '@/types';
+import { normalizeSettings } from '@/lib/settings';
 
 type SolverSettings = Partial<Pick<RoomSettings, 'modAllowed' | 'fractionsAllowed' | 'targetNumber'>>;
 
@@ -40,14 +41,7 @@ export async function POST(req: NextRequest) {
 
     // Apply settings override if provided (Play Again flow)
     if (settingsOverride) {
-      roomState.settings = {
-        timeLimitSeconds: Math.min(300, Math.max(30, settingsOverride.timeLimitSeconds ?? DEFAULT_SETTINGS.timeLimitSeconds)),
-        modAllowed: !!settingsOverride.modAllowed,
-        fractionsAllowed: !!settingsOverride.fractionsAllowed,
-        cardsPerRound: Math.min(7, Math.max(3, settingsOverride.cardsPerRound ?? DEFAULT_SETTINGS.cardsPerRound)),
-        targetNumber: Math.min(100, Math.max(-100, settingsOverride.targetNumber ?? DEFAULT_SETTINGS.targetNumber)),
-        infiniteMode: !!settingsOverride.infiniteMode,
-      };
+      roomState.settings = normalizeSettings(settingsOverride);
     }
 
     const settings = roomState.settings ?? DEFAULT_SETTINGS;
@@ -84,7 +78,7 @@ export async function POST(req: NextRequest) {
     await setRoomState(roomCode, roomState);
     await setGameState(roomCode, gameState);
 
-    await publishToRoom(roomCode, 'game:started', { gameState });
+    await publishToRoom(roomCode, 'game:started', { gameState, settings: roomState.settings });
     await publishToRoom(roomCode, 'round:start', {
       roundNumber: gameState.roundNumber,
       cards: gameState.currentHand,

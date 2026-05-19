@@ -101,6 +101,7 @@ export interface EndVoteUpdatePayload {
 export type AblyEventName =
   | 'room:player_joined'
   | 'room:player_left'
+  | 'room:settings_updated'
   | 'game:started'
   | 'round:start'
   | 'round:solved'

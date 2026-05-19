@@ -82,6 +82,24 @@ export function useGameState({ roomCode, playerId, initialRoom, initialGame }: U
   }
 
   useEffect(() => {
+    subscribe('game:started', (data) => {
+      const { gameState: newGame, settings: newSettings } = data as { gameState: GameState; settings?: RoomSettings };
+      // Reset all game-over and round state for a fresh game
+      setIsGameOver(false);
+      setFinalData(null);
+      setNotification(null);
+      setSolutions([]);
+      setShowSolutions(false);
+      setWinningExpression(null);
+      if (solutionTimerRef.current) clearTimeout(solutionTimerRef.current);
+      if (newSettings) {
+        setRoom((prev) => ({ ...prev, settings: newSettings }));
+        settingsRef.current = newSettings;
+      }
+      setGame(() => newGame);
+      setDeckRemaining(newGame.deck?.length ?? 0);
+    });
+
     subscribe('room:player_joined', (data) => {
       const { player } = data as { player: Player };
       setRoom((prev) => ({
@@ -173,6 +191,7 @@ export function useGameState({ roomCode, playerId, initialRoom, initialGame }: U
     });
 
     return () => {
+      unsubscribe('game:started');
       unsubscribe('room:player_joined');
       unsubscribe('room:player_left');
       unsubscribe('round:start');

@@ -3,7 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { generateRoomCode } from '@/lib/roomCode';
 import { redis, setRoomState } from '@/lib/redis';
 import { DEFAULT_SETTINGS } from '@/types';
-import type { RoomState, RoomSettings, Player } from '@/types';
+import type { RoomState, Player } from '@/types';
+import { normalizeSettings } from '@/lib/settings';
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,14 +27,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Could not generate unique room code.' }, { status: 500 });
     }
 
-    const settings: RoomSettings = {
-      timeLimitSeconds: clamp(rawSettings?.timeLimitSeconds ?? DEFAULT_SETTINGS.timeLimitSeconds, 30, 300),
-      modAllowed: !!rawSettings?.modAllowed,
-      fractionsAllowed: !!rawSettings?.fractionsAllowed,
-      cardsPerRound: clamp(rawSettings?.cardsPerRound ?? DEFAULT_SETTINGS.cardsPerRound, 3, 7),
-      targetNumber: clamp(rawSettings?.targetNumber ?? DEFAULT_SETTINGS.targetNumber, -100, 100),
-      infiniteMode: !!rawSettings?.infiniteMode,
-    };
+    const settings = normalizeSettings(rawSettings ?? {});
 
     const host: Player = {
       id: playerId,
@@ -60,8 +54,4 @@ export async function POST(req: NextRequest) {
     console.error('[room/create]', err);
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
-}
-
-function clamp(val: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, val));
 }
