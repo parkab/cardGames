@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --felt: #1a4a2e;
+  --felt-dark: #0f2d1c;
+  --felt-light: #245c39;
+  --gold: #c9a84c;
+  --gold-light: #e0c06b;
+}
+
+body {
+  background-color: var(--felt-dark);
+  color: #f5f0e8;
+  font-family: Georgia, Cambria, serif;
+}
+
+/* Felt texture overlay */
+.felt-texture {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(26, 74, 46, 0.8) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(15, 45, 28, 0.6) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%231a4a2e'/%3E%3Crect width='1' height='1' fill='%23163e26' opacity='0.4'/%3E%3C/svg%3E");
+  background-color: var(--felt);
+}
+
+/* Gold border glow */
+.gold-border {
+  border: 1px solid var(--gold);
+  box-shadow: 0 0 8px rgba(201, 168, 76, 0.2), inset 0 0 8px rgba(201, 168, 76, 0.05);
+}
+
+/* Card styles */
+.playing-card {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease;
+}
+
+.playing-card:hover {
+  transform: translateY(-4px);
+}

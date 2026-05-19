@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# environment variables — NEVER commit these
+.env
+.env.local
+.env*.local
+
+# TypeScript / build caches
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# Claude Code internals
+.claude/
+
+# nested repo from earlier clone (just a README)
+cardGames/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
