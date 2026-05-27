@@ -62,6 +62,7 @@ export default function LobbyPage() {
   }, [code]);
 
   const { subscribe, unsubscribe } = useAbly(code, playerId);
+  const gameType = room?.gameType ?? 'twenty-one';
 
   useEffect(() => {
     if (!playerId || !code) return;
@@ -97,11 +98,16 @@ export default function LobbyPage() {
       router.push(`/game/${code}`);
     });
 
+    subscribe('cambio:started', () => {
+      router.push(`/cambio-game/${code}`);
+    });
+
     return () => {
       unsubscribe('room:player_joined');
       unsubscribe('room:player_left');
       unsubscribe('room:settings_updated');
       unsubscribe('game:started');
+      unsubscribe('cambio:started');
     };
   }, [playerId, code]);
 
@@ -136,13 +142,14 @@ export default function LobbyPage() {
 
   const handleStart = useCallback(async () => {
     setStarting(true);
-    await fetch('/api/game/start', {
+    const endpoint = gameType === 'cambio' ? '/api/cambio/start' : '/api/game/start';
+    await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ roomCode: code, playerId }),
     });
     setStarting(false);
-  }, [code, playerId]);
+  }, [code, playerId, gameType]);
 
   const handleLeave = useCallback(async () => {
     await fetch('/api/room/leave', {
@@ -150,8 +157,8 @@ export default function LobbyPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ roomCode: code, playerId }),
     });
-    router.push('/21');
-  }, [code, playerId]);
+    router.push(gameType === 'cambio' ? '/cambio' : '/21');
+  }, [code, playerId, gameType]);
 
   const isHost = room?.hostId === playerId;
 
@@ -185,8 +192,13 @@ export default function LobbyPage() {
             )}
           </div>
 
-          {/* Game settings */}
-          <div className="rounded-lg border border-white/10 bg-black/20 p-4 flex flex-col gap-5">
+          {/* Game settings — Make 21 only */}
+          {gameType === 'cambio' ? (
+            <div className="rounded-lg border border-white/10 bg-black/20 p-4 text-center">
+              <p className="text-white/30 text-sm">Cambio — no configurable settings</p>
+            </div>
+          ) : null}
+          {gameType !== 'cambio' && <div className="rounded-lg border border-white/10 bg-black/20 p-4 flex flex-col gap-5">
             <div className="flex items-center justify-between">
               <p className="text-gold/50 text-[10px] tracking-widest uppercase">Game Settings</p>
               {!isHost && <p className="text-white/25 text-[10px]">Set by host</p>}
@@ -281,7 +293,7 @@ export default function LobbyPage() {
               </div>
               <Toggle on={settings.infiniteMode ?? false} onToggle={() => handleToggle('infiniteMode')} disabled={!isHost} />
             </div>
-          </div>
+          </div>}
 
           {/* Start / Leave */}
           <div className="flex flex-col gap-3">

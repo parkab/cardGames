@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Ably from 'ably';
-import type { AblyEventName } from '@/types';
+import type { AblyEventName, CambioAblyEventName } from '@/types';
+
+type AnyEventName = AblyEventName | CambioAblyEventName;
 
 type Handler = (data: unknown) => void;
 
@@ -32,11 +34,11 @@ export function useAbly(roomCode: string, playerId: string) {
     };
   }, [roomCode, playerId]);
 
-  function subscribe(eventName: AblyEventName, handler: Handler) {
+  function subscribe(eventName: AnyEventName, handler: Handler) {
     channelRef.current?.subscribe(eventName, (msg) => handler(msg.data));
   }
 
-  function unsubscribe(eventName: AblyEventName) {
+  function unsubscribe(eventName: AnyEventName) {
     channelRef.current?.unsubscribe(eventName);
   }
 

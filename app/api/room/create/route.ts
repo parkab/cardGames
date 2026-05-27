@@ -3,12 +3,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { generateRoomCode } from '@/lib/roomCode';
 import { redis, setRoomState } from '@/lib/redis';
 import { DEFAULT_SETTINGS } from '@/types';
-import type { RoomState, Player } from '@/types';
+import type { RoomState, Player, GameType } from '@/types';
 import { normalizeSettings } from '@/lib/settings';
 
 export async function POST(req: NextRequest) {
   try {
-    const { nickname, settings: rawSettings } = await req.json();
+    const { nickname, settings: rawSettings, gameType: rawGameType } = await req.json();
     if (!nickname || typeof nickname !== 'string' || nickname.trim().length === 0) {
       return NextResponse.json({ error: 'Nickname is required.' }, { status: 400 });
     }
@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     const settings = normalizeSettings(rawSettings ?? {});
+    const gameType: GameType = rawGameType === 'cambio' ? 'cambio' : 'twenty-one';
 
     const host: Player = {
       id: playerId,
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
       hostId: playerId,
       createdAt: Date.now(),
       settings,
+      gameType,
     };
 
     await setRoomState(roomCode, roomState);

@@ -28,3 +28,12 @@ export async function setGameState(code: string, state: unknown) {
 export async function deleteRoom(code: string) {
   await redis.del(`room:${code}`, `game:${code}`);
 }
+
+export async function getCambioState(code: string) {
+  const data = await redis.get(`cambio:${code}`);
+  return data ?? null;
+}
+
+export async function setCambioState(code: string, state: unknown) {
+  await redis.set(`cambio:${code}`, JSON.stringify(state), { ex: ROOM_TTL });
+}
